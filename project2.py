@@ -20,6 +20,11 @@ free_tellers = deque()
 # per-teller handshake
 customer_arrived = [threading.Semaphore(0) for _ in range(NUM_TELLERS)]
 teller_cust = [None] * NUM_TELLERS
+ask_txn       = [threading.Semaphore(0) for _ in range(NUM_TELLERS)]
+txn_given     = [threading.Semaphore(0) for _ in range(NUM_TELLERS)]
+txn_done      = [threading.Semaphore(0) for _ in range(NUM_TELLERS)]
+customer_left = [threading.Semaphore(0) for _ in range(NUM_TELLERS)]
+teller_txn = [None] * NUM_TELLERS
 
 
 def teller(t):
@@ -32,20 +37,46 @@ def teller(t):
         log("Teller", t, "", "waiting for a customer")
         customer_arrived[t].acquire()
         c = teller_cust[t]
-        log("Teller", t, f"Customer {c}", "serving a customer")
+        cust = f"Customer {c}"
+        log("Teller", t, cust, "serving a customer")
+        log("Teller", t, cust, "asks for transaction")
+        ask_txn[t].release()
+        txn_given[t].acquire()
+        txn = teller_txn[t]
+        log("Teller", t, cust, f"handling {txn} transaction")
+
+        # (manager + safe go here in 2b)
+
+        log("Teller", t, cust, f"finishes {txn} transaction.")
+        log("Teller", t, cust, "wait for customer to leave.")
+        txn_done[t].release()
+        customer_left[t].acquire()
 
 
 def customer(c):
+    txn = random.choice(["deposit", "withdrawal"])
+    log("Customer", c, "", f"wants to perform a {txn} transaction")
+
     log("Customer", c, "", "getting in line.")
     teller_available.acquire()
     log("Customer", c, "", "selecting a teller.")
     with queue_lock:
         t = free_tellers.popleft()
-    log("Customer", c, f"Teller {t}", "selects teller")
+    tel = f"Teller {t}"
+    log("Customer", c, tel, "selects teller")
 
     teller_cust[t] = c
-    log("Customer", c, f"Teller {t}", "introduces itself")
+    log("Customer", c, tel, "introduces itself")
     customer_arrived[t].release()
+
+    ask_txn[t].acquire()
+    teller_txn[t] = txn
+    log("Customer", c, tel, f"asks for {txn} transaction")
+    txn_given[t].release()
+
+    txn_done[t].acquire()
+    log("Customer", c, tel, "leaves teller")
+    customer_left[t].release()
 
 
 def main():
