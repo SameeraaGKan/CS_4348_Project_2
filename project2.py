@@ -4,7 +4,7 @@ import time
 from collections import deque
 
 NUM_TELLERS = 3
-NUM_CUSTOMERS = 3   # bump to 50 in session 6
+NUM_CUSTOMERS = 50
 
 # ---------- output ----------
 print_lock = threading.Lock()
