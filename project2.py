@@ -72,6 +72,12 @@ def customer(c):
     txn = random.choice(["deposit", "withdrawal"])
     log("Customer", c, "", f"wants to perform a {txn} transaction")
 
+    time.sleep(random.uniform(0, 0.100))
+    log("Customer", c, "", "going to bank.")
+    door.acquire()
+    log("Customer", c, "", "entering bank.")
+    door.release()
+
     log("Customer", c, "", "getting in line.")
     teller_available.acquire()
     log("Customer", c, "", "selecting a teller.")
@@ -92,7 +98,10 @@ def customer(c):
     txn_done[t].acquire()
     log("Customer", c, tel, "leaves teller")
     customer_left[t].release()
-
+    log("Customer", c, "", "goes to door")
+    door.acquire()
+    log("Customer", c, "", "leaves the bank")
+    door.release()
 
 def main():
     tellers = [threading.Thread(target=teller, args=(i,)) for i in range(NUM_TELLERS)]

@@ -17,5 +17,15 @@ What you’ll see: the full transaction flow works for 3 customers, but it still
 
 
 # 11-13-2026 5:30pm
+Plan: add the two shared resources.
+Main idea: manager is Semaphore(1) and only withdrawals use it. Safe is Semaphore(2). Each has a sleep and three log lines: going, using, done.
+What you’ll see: withdrawals take longer, and tellers queue up for the safe when 2 are already inside.
+Reflect: how you checked that the limits held.
+
+# 11-13-2026 6:30pm
+Plan: make customers arrive at random times and go through the door.
+Main idea: the door is Semaphore(2), used on the way in and on the way out. The random 0–100 ms delay spreads arrivals out.
+What you’ll see: output gets more interleaved and arrivals look less uniform.
+Reflect: your choice to hold the door only while entering and leaving, not for the whole visit.
 
 
