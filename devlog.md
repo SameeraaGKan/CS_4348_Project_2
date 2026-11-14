@@ -2,7 +2,6 @@
 Initialized the repository and devlog with initial plan.  Got the git repository initialised and started planning.
 Mostly just trying to understand what the project is asking for.
 
-
 # 11-13-2026 3:13pm
 Start: plan to get the basic customer → teller meeting working before anything else, with 3 customers.
 Main idea: teller_available is a counting semaphore starting at 0. Each free teller releases it, and customers block on it, which is how waiting in line works. The free_tellers queue tells the customer which teller it got, and the lock keeps two customers from grabbing the same one.
@@ -14,7 +13,6 @@ Start: plan to pass the transaction type between threads and add the shared reso
 Main idea: each teller gets its own set of semaphores, so signals for teller 0 can’t wake teller 1. Data moves through teller_cust and teller_txn, and the variable must be set before the release, or the other thread reads stale data.
 Manager is Semaphore(1) and the safe is Semaphore(2). Each gets three log lines: going, using, done.
 What you’ll see: the full transaction flow works for 3 customers, but it still hangs at the end.
-
 
 # 11-13-2026 5:30pm
 Plan: add the two shared resources.
@@ -28,4 +26,14 @@ Main idea: the door is Semaphore(2), used on the way in and on the way out. The 
 What you’ll see: output gets more interleaved and arrivals look less uniform.
 Reflect: your choice to hold the door only while entering and leaving, not for the whole visit.
 
+# 11-13-2026 7:30pm
+Plan: make the bank open properly and fix the hang from Session 1.
+Main idea: main waits for 3 teller_ready signals before starting customers. After the customers are joined, it sets done and wakes each teller so it can exit.
+What you’ll see: “leaving for the day” three times, then “The bank closes for the day.”
+Reflect: why the tellers were stuck, and why releasing customer_arrived fixes it.
 
+# 11-13-2026 10:00pm
+Plan: run the full simulation and verify it.
+Main idea: set NUM_CUSTOMERS = 50, run it multiple times, and use the grep checks (expect 50 and 3).
+What you’ll see: about 350+ lines of output, and the counts match.
+Reflect: how many runs you did, anything weird you noticed, and what you’d do differently.
