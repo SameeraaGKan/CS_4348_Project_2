@@ -14,6 +14,8 @@ def log(kind, id_, other, msg):
 
 # the line
 teller_available = threading.Semaphore(0)
+safe = threading.Semaphore(2)
+manager = threading.Semaphore(1)
 queue_lock = threading.Lock()
 free_tellers = deque()
 
@@ -45,7 +47,20 @@ def teller(t):
         txn = teller_txn[t]
         log("Teller", t, cust, f"handling {txn} transaction")
 
-        # (manager + safe go here in 2b)
+        if txn == "withdrawal":
+            log("Teller", t, cust, "going to the manager")
+            manager.acquire()
+            log("Teller", t, cust, "getting manager's permission")
+            time.sleep(random.uniform(0.005, 0.030))
+            log("Teller", t, cust, "got manager's permission")
+            manager.release()
+
+        log("Teller", t, cust, "going to safe") 
+        safe.acquire()
+        log("Teller", t, cust, "enter safe")
+        time.sleep(random.uniform(0.010, 0.050))
+        log("Teller", t, cust, "leaving safe")
+        safe.release()
 
         log("Teller", t, cust, f"finishes {txn} transaction.")
         log("Teller", t, cust, "wait for customer to leave.")
